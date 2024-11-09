@@ -11,42 +11,43 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Project Manager',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const ProjectList(title: 'Project List'),
+      theme: ThemeData.dark(),
+      home: const MainPage(title: 'Project List'),
     );
   }
 }
 
 //will change to homepage later on - could add todo list to homepage??
-class ProjectList extends StatefulWidget {
-  const ProjectList({super.key, required this.title});
+class MainPage extends StatefulWidget {
+  const MainPage({super.key, required this.title});
   final String title;
 
   @override
-  State<ProjectList> createState() => ProjectListState();
+  State<MainPage> createState() => MainPageState();
 }
 
-class ProjectListState extends State<ProjectList> {
+class MainPageState extends State<MainPage> {
   //making the default page0 so it doesnt crash off of startup
-  Widget page = const Page0();
+  Widget subPage = const Home();
+  int index = 0;
 
   //Text style for all text on this page
-  final txtStyle = const TextStyle(
+  TextStyle txtStyle = const TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
+    color: Color.fromARGB(255, 255, 255, 255)
   );
 
   //function to switch page using index from the list tile
-  void SwitchIndex(int index){
+  void switchIndex(int index){
     setState(() {
       switch(index){
         case 0:
-        page = const Page0();
+        subPage = const Home();
         case 1:
-        page = const Page1();
+        subPage = const Page0();
+        case 2:
+        subPage = const Page1();
       }
     });
     //close drawer
@@ -59,7 +60,7 @@ class ProjectListState extends State<ProjectList> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Project List"),
-        backgroundColor: Colors.red,
+        backgroundColor: const Color.fromARGB(255, 228, 93, 83),
         //adding drawer icon to appbar
         leading: Builder(
           builder: (context){
@@ -75,22 +76,83 @@ class ProjectListState extends State<ProjectList> {
       drawer: Drawer(
         child: SafeArea(
           //list projects here - maybe automate list when implementing files - like read the number of projects, what they are, etc and list them here
-          child: ListView(
-            children: [
-              ListTile(
-                title: const Text("index 0"),
-                //did not know that i had to do this - prevents function being called on build which if it is called raises an error :l
-                  onTap: () => SwitchIndex(0),
+          child: NavigationRail(
+            extended: true,
+            selectedIndex: index,
+            onDestinationSelected: switchIndex,
+            destinations: const [
+              NavigationRailDestination(
+                label: Text("Home", style: TextStyle(color: Colors.white,)),
+                icon: Icon(Icons.abc),
               ),
-              ListTile(
-                title: const Text("index 1"),
-                onTap: () => SwitchIndex(1),
+              NavigationRailDestination(
+                label: Text("index 0", style: TextStyle(color: Colors.white,)),
+                icon: Icon(Icons.access_alarm),
+              ),
+              NavigationRailDestination(
+                label: Text("index 1", style: TextStyle(color: Colors.white,)),
+                icon: Icon(Icons.handshake),
               ),
             ],
           )
         ),
       ),
-      body: page
+      body: subPage
+    );
+  }
+}
+
+class Home extends StatelessWidget{
+  const Home({super.key});
+
+  @override
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          const Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("hola")
+                ],
+              ),
+            )
+          ),  
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 43, 43, 43),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: SizedBox(
+                width: 400,
+                  child: Column(
+                    children:[
+                      const Text("To Do:"),
+                      Expanded(
+                        child:ListView.separated(
+                          itemCount: 1,
+                          separatorBuilder: (context, index) => const Divider(),
+                          itemBuilder: (context, index) {
+                            return const ListTile(
+                              title: Text("hi"),
+                            );
+                          }
+                        )
+                      )
+                    ]
+                  ),
+                )
+              ),
+            ),
+        ],
+      )
     );
   }
 }
