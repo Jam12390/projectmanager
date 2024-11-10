@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projectmanager/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,7 +29,7 @@ class MainPage extends StatefulWidget {
 
 class MainPageState extends State<MainPage> {
   //making the default page0 so it doesnt crash off of startup
-  Widget subPage = const Home();
+  Widget subPage = Home();
   int index = 0;
 
   //Text style for all text on this page
@@ -43,7 +44,7 @@ class MainPageState extends State<MainPage> {
     setState(() {
       switch(index){
         case 0:
-        subPage = const Home();
+        subPage = Home();
         case 1:
         subPage = const Page0();
         case 2:
@@ -98,61 +99,6 @@ class MainPageState extends State<MainPage> {
         ),
       ),
       body: subPage
-    );
-  }
-}
-
-class Home extends StatelessWidget{
-  const Home({super.key});
-
-  @override
-
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          const Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("hola")
-                ],
-              ),
-            )
-          ),  
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 43, 43, 43),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: SizedBox(
-                width: 400,
-                  child: Column(
-                    children:[
-                      const Text("To Do:"),
-                      Expanded(
-                        child:ListView.separated(
-                          itemCount: 1,
-                          separatorBuilder: (context, index) => const Divider(),
-                          itemBuilder: (context, index) {
-                            return const ListTile(
-                              title: Text("hi"),
-                            );
-                          }
-                        )
-                      )
-                    ]
-                  ),
-                )
-              ),
-            ),
-        ],
-      )
     );
   }
 }
