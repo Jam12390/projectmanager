@@ -91,3 +91,4 @@ flutter:
   assets:
       - lib/list.txt
       - lib/testDescription.txt
+      - lib/testtimeline.json

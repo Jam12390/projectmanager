@@ -40,20 +40,31 @@ class MainPageState extends State<MainPage> {
     color: Color.fromARGB(255, 255, 255, 255)
   );
 
+  void updateState(index){
+    switchIndex(index);
+    Navigator.pop(context); //note for self - dont call this unless you are **SURE** a drawer is open - app goes black otherwise
+  }
+
   //function to switch page using index from the list tile
-  void switchIndex(int index){
+  void switchIndex(index){
     setState(() {
       switch(index){
+        case "edittimeline":
+        subPage = const TimelineEditPage();
+        break;
         case 0:
         subPage = const Home();
+        break;
         case 1:
-        subPage = const Page0();
-        case 2:
-        subPage = const Page1();
+        subPage = ProjectPage(
+          onTimelineEdit: switchIndex
+        );
+        break;
+        default:
+        subPage = const Home();
+        break;
       }
     });
-    //close drawer
-    Navigator.pop(context);
   }
 
   @override
@@ -81,19 +92,15 @@ class MainPageState extends State<MainPage> {
           child: NavigationRail(
             extended: true,
             selectedIndex: index,
-            onDestinationSelected: switchIndex,
+            onDestinationSelected: updateState,
             destinations: const [
               NavigationRailDestination(
                 label: Text("Home", style: TextStyle(color: Colors.white,)),
                 icon: Icon(Icons.abc),
               ),
               NavigationRailDestination(
-                label: Text("index 0", style: TextStyle(color: Colors.white,)),
+                label: Text("Project Test Page", style: TextStyle(color: Colors.white,)),
                 icon: Icon(Icons.access_alarm),
-              ),
-              NavigationRailDestination(
-                label: Text("index 1", style: TextStyle(color: Colors.white,)),
-                icon: Icon(Icons.handshake),
               ),
             ],
           )
@@ -105,14 +112,16 @@ class MainPageState extends State<MainPage> {
 }
 
 //test pages to make sure initial page swapping actually works - it does :D
-class Page0 extends StatefulWidget{
-  const Page0({super.key});
+class ProjectPage extends StatefulWidget{
+  const ProjectPage({super.key, required this.onTimelineEdit});
+
+  final Function onTimelineEdit;
 
   @override
-  State<Page0> createState() => ProjectTestState();
+  State<ProjectPage> createState() => ProjectTestState();
 }
 
-class ProjectTestState extends State<Page0>{
+class ProjectTestState extends State<ProjectPage>{
   String testData = "";
 
   Future<void> loadDesc(path) async {
@@ -132,7 +141,8 @@ class ProjectTestState extends State<Page0>{
   Widget build(BuildContext context){
     return Scaffold(
       body: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,14 +154,14 @@ class ProjectTestState extends State<Page0>{
               Padding(
                 padding: const EdgeInsets.only(left: 12),
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 43, 43, 43),
-                    //borderRadius: BorderRadius.circular(25),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 43, 43, 43),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: SizedBox(
                     width: 500,
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 2),
+                      padding: const EdgeInsets.all(5),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -168,10 +178,46 @@ class ProjectTestState extends State<Page0>{
               ),
             ],
           ),
-          Row( //doesnt work rn
-            children: [
-              Text("bishbosh")
-            ],
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 43, 43, 43),
+                borderRadius: BorderRadius.circular(25)
+              ),
+              child: SizedBox(
+                height: 175,
+                width: 600,
+                child: Stack(
+                  children: [
+                    const Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text("h"),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: IconButton.filled(
+                          iconSize: 22.5,
+                          color: const Color.fromARGB(255, 187, 187, 187),
+                          style: IconButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(126, 22, 22, 22),
+                          ),
+                          onPressed: () {
+                            widget.onTimelineEdit("edittimeline");
+                          },
+                          icon: const Icon(Icons.fullscreen)
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           )
         ],
       ),
@@ -179,14 +225,22 @@ class ProjectTestState extends State<Page0>{
   }
 }
 
-class Page1 extends StatelessWidget{
-  const Page1({super.key});
+class TimelineEditPage extends StatefulWidget{
+  const TimelineEditPage({super.key});
+
+  @override
+  State<TimelineEditPage> createState() => TimelineEditState();
+}
+
+class TimelineEditState extends State<TimelineEditPage>{
 
   @override
   Widget build(BuildContext context){
     return const Scaffold(
-      body: Center(
-        child: Text("Index 1 - Page 1"),
+      body: Column(
+        children: [
+          Text("g")
+        ],
       ),
     );
   }
