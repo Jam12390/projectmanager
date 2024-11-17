@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:projectmanager/home.dart';
@@ -231,10 +232,10 @@ class TimelinePainter extends CustomPainter{
   @override
   void paint(Canvas canvas, Size size){
     var paint = Paint();
-    paint.color = Colors.white;
-    paint.strokeWidth = 5;
-    canvas.drawLine(Offset(size.width*0.05, size.height*(1/6)), Offset(size.width*0.05, size.height*(5/6)), paint);
-    canvas.drawLine(Offset(size.width*0.95, size.height*(1/6)), Offset(size.width*0.95, size.height*(5/6)), paint);
+    paint.color = const Color.fromARGB(255, 126, 126, 126);
+    paint.strokeWidth = 4;
+    canvas.drawLine(Offset(size.width*0.05, size.height*(1/5)), Offset(size.width*0.05, size.height*(4/5)), paint);
+    canvas.drawLine(Offset(size.width*0.95, size.height*(1/5)), Offset(size.width*0.95, size.height*(4/5)), paint);
     paint.strokeWidth = 2;
     canvas.drawLine(Offset(size.width*0.05, size.height*0.5), Offset(size.width*0.95, size.height*0.5), paint);
   }
@@ -255,38 +256,94 @@ class TimelineEditPage extends StatefulWidget{
 
 class TimelineEditState extends State<TimelineEditPage>{
   Map<String, List> timelineData = Map();
+  int daysLength = 0;
+  DateTime endDate = DateTime(9999,12,31);
+
+  //int timelineSt = Point(MediaQuery.of(context).size.width, y)
 
   Future<void> readJson(path) async{
     String str = await rootBundle.loadString(path);
     final data = await jsonDecode(str);
-    timelineData["stEnDates"] = [data["startdate"], data["enddate"]];
-    timelineData["eventDates"] = [];
-    timelineData["events"] = [];
-    for (var x=0; x < data["eventdates"].length; x++){
-      timelineData["eventDates"]?.add(data["eventdates"][x]);
-      timelineData["events"]?.add(data["events"][data["eventdates"][x]]);
-    }
-    print(timelineData);
+    setState(() {
+      timelineData["stEnDates"] = [data["startdate"], data["enddate"]];
+      timelineData["eventDates"] = [];
+      timelineData["events"] = [];
+      for (var x=0; x < data["eventdates"].length; x++){
+        print("readjson ran good");
+        timelineData["eventDates"]?.add(data["eventdates"][x]);
+        timelineData["events"]?.add(data["events"][data["eventdates"][x]]);
+      }
+      DateTime startDate = DateTime(int.parse(timelineData["stEnDates"]?[0].substring(6,10)), int.parse(timelineData["stEnDates"]?[0].substring(3,5)), int.parse(timelineData["stEnDates"]?[0].substring(0,2)));
+      endDate = DateTime(int.parse(timelineData["stEnDates"]?[1].substring(6,10)), int.parse(timelineData["stEnDates"]?[1].substring(3,5)), int.parse(timelineData["stEnDates"]?[1].substring(0,2)));
+      print(endDate);
+      daysLength = endDate.difference(startDate).inDays;
+    });
+  }
+
+  int getEventPos(String date, DateTime endDate){
+    DateTime evDate = DateTime(int.parse(date.substring(6,10)), int.parse(date.substring(3,5)), int.parse(date.substring(0,2))); //fix all of this please just fix it  all just use the fuicking timeline packagfe pleaseplaesepleasdeplaeas
+    print(evDate);
+    print(endDate);
+    return endDate.difference(evDate).inDays;
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     readJson("lib/testtimeline.json");
-    //drawTimeline(canvas, MediaQuery.of(context).size.height, MediaQuery.of(context).size.width);
+    //getTlLength(timelineData["stEnDates"]?[0], timelineData["stEnDates"]?[1]);
+  }
+
+  void testButton(){
+    print("this has been pressed");
   }
 
   @override
   Widget build(BuildContext context){
+    Point timelineSt = Point(MediaQuery.of(context).size.width*0.05, MediaQuery.of(context).size.height*0.5);
+    Point timelineEnd = Point(MediaQuery.of(context).size.width*0.95, MediaQuery.of(context).size.height*0.5);
+    double pixelTlLength = timelineEnd.x-timelineSt.x as double;
+    List<Widget> events = []; //recursively adding events aligned by their dates to the UI
+    if (timelineData["eventDates"]?.length != null){
+      print(timelineData["eventDates"]!.length-1);
+      for (int x=0; x <= timelineData["eventDates"]!.length-1; x++){
+        print("sonething happened");
+        int evDateDays = getEventPos(timelineData["eventDates"]?[x], endDate);
+        double eventPos = evDateDays/daysLength;
+        print(evDateDays);
+        print(daysLength);
+        print("--");
+        print(eventPos);
+        print(pixelTlLength);
+        Widget toAdd = Align( //(timelineSt.x+(eventPos*pixelTlLength))
+          alignment: Alignment(((1/MediaQuery.of(context).size.width)+((1/MediaQuery.of(context).size.width)*timelineSt.x))+((1/MediaQuery.of(context).size.width)*(timelineSt.x+(eventPos*pixelTlLength))), 0.5),
+          child: FloatingActionButton(
+            onPressed: testButton,
+            child: const Text("help me"),
+          )
+        );
+        setState(() {
+          events.add(toAdd);
+        });
+      }
+      print(events);
+    }
     return Scaffold(
       body: CustomPaint(
         painter: TimelinePainter(),
-        child: const Stack(
+        child: Stack(
           children: [
-            Center(
-              child: Text("t"),
+            Row(
+              children: events,
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: IconButton(
+                onPressed: testButton, 
+                icon: const Icon(Icons.add)
+              ),
             )
-          ],
+          ]
         ),
       )
     );

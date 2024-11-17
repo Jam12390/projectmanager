@@ -1,8 +1,8 @@
 {
-    "startdate": "16/11/24",
-    "enddate": "20/11/24",
-    "eventdates": ["18/11/24"],
+    "startdate": "16/11/2024",
+    "enddate": "20/11/2024",
+    "eventdates": ["18/11/2024"],
     "events": {
-        "18/11/24": "the fog is coming"
+        "18/11/2024": "the fog is coming"
     }
 }
