@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:projectmanager/home.dart';
 import 'package:flutter/services.dart';
@@ -225,6 +227,25 @@ class ProjectTestState extends State<ProjectPage>{
   }
 }
 
+class TimelinePainter extends CustomPainter{
+  @override
+  void paint(Canvas canvas, Size size){
+    var paint = Paint();
+    paint.color = Colors.white;
+    paint.strokeWidth = 5;
+    canvas.drawLine(Offset(size.width*0.05, size.height*(1/6)), Offset(size.width*0.05, size.height*(5/6)), paint);
+    canvas.drawLine(Offset(size.width*0.95, size.height*(1/6)), Offset(size.width*0.95, size.height*(5/6)), paint);
+    paint.strokeWidth = 2;
+    canvas.drawLine(Offset(size.width*0.05, size.height*0.5), Offset(size.width*0.95, size.height*0.5), paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate){
+    return true;
+  }
+}
+
+
 class TimelineEditPage extends StatefulWidget{
   const TimelineEditPage({super.key});
 
@@ -233,15 +254,41 @@ class TimelineEditPage extends StatefulWidget{
 }
 
 class TimelineEditState extends State<TimelineEditPage>{
+  Map<String, List> timelineData = Map();
+
+  Future<void> readJson(path) async{
+    String str = await rootBundle.loadString(path);
+    final data = await jsonDecode(str);
+    timelineData["stEnDates"] = [data["startdate"], data["enddate"]];
+    timelineData["eventDates"] = [];
+    timelineData["events"] = [];
+    for (var x=0; x < data["eventdates"].length; x++){
+      timelineData["eventDates"]?.add(data["eventdates"][x]);
+      timelineData["events"]?.add(data["events"][data["eventdates"][x]]);
+    }
+    print(timelineData);
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    readJson("lib/testtimeline.json");
+    //drawTimeline(canvas, MediaQuery.of(context).size.height, MediaQuery.of(context).size.width);
+  }
 
   @override
   Widget build(BuildContext context){
-    return const Scaffold(
-      body: Column(
-        children: [
-          Text("g")
-        ],
-      ),
+    return Scaffold(
+      body: CustomPaint(
+        painter: TimelinePainter(),
+        child: const Stack(
+          children: [
+            Center(
+              child: Text("t"),
+            )
+          ],
+        ),
+      )
     );
   }
 }
