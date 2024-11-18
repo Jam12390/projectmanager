@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:projectmanager/home.dart';
 import 'package:flutter/services.dart';
 
+import 'package:timelines/timelines.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -196,7 +198,7 @@ class ProjectTestState extends State<ProjectPage>{
                     const Align(
                       alignment: Alignment.topLeft,
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(12),
                         child: Text("h"),
                       ),
                     ),
@@ -258,6 +260,9 @@ class TimelineEditState extends State<TimelineEditPage>{
   Map<String, List> timelineData = Map();
   int daysLength = 0;
   DateTime endDate = DateTime(9999,12,31);
+  DateTime startDate = DateTime(0000,00,00);
+  List<String> timelineDates = [];
+  bool isLoading = true;
 
   //int timelineSt = Point(MediaQuery.of(context).size.width, y)
 
@@ -266,17 +271,20 @@ class TimelineEditState extends State<TimelineEditPage>{
     final data = await jsonDecode(str);
     setState(() {
       timelineData["stEnDates"] = [data["startdate"], data["enddate"]];
-      timelineData["eventDates"] = [];
-      timelineData["events"] = [];
-      for (var x=0; x < data["eventdates"].length; x++){
+      timelineData["eventDates"] = [timelineData["stEnDates"]?[1]];
+      timelineData["events"] = [" "];
+      for (var x=0; x <= data["eventdates"].length-1; x++){
         print("readjson ran good");
-        timelineData["eventDates"]?.add(data["eventdates"][x]);
-        timelineData["events"]?.add(data["events"][data["eventdates"][x]]);
+        timelineData["eventDates"]?.insert(timelineData["eventDates"]!.length-1,data["eventdates"][x]);
+        timelineData["events"]?.insert(timelineData["events"]!.length-1, data["events"][data["eventdates"][x]]);
       }
-      DateTime startDate = DateTime(int.parse(timelineData["stEnDates"]?[0].substring(6,10)), int.parse(timelineData["stEnDates"]?[0].substring(3,5)), int.parse(timelineData["stEnDates"]?[0].substring(0,2)));
+      startDate = DateTime(int.parse(timelineData["stEnDates"]?[0].substring(6,10)), int.parse(timelineData["stEnDates"]?[0].substring(3,5)), int.parse(timelineData["stEnDates"]?[0].substring(0,2)));
       endDate = DateTime(int.parse(timelineData["stEnDates"]?[1].substring(6,10)), int.parse(timelineData["stEnDates"]?[1].substring(3,5)), int.parse(timelineData["stEnDates"]?[1].substring(0,2)));
+      timelineDates = [timelineData["stEnDates"]?[0],timelineData["stEnDates"]?[1]];
       print(endDate);
       daysLength = endDate.difference(startDate).inDays;
+      isLoading = false;
+      print("oh no");
     });
   }
 
@@ -298,54 +306,124 @@ class TimelineEditState extends State<TimelineEditPage>{
     print("this has been pressed");
   }
 
+  int getDateTime(String date, DateTime stDate){
+    DateTime dt = DateTime(int.parse(date.substring(6,10)), int.parse(date.substring(3,5)), int.parse(date.substring(0,2)));
+    return stDate.difference(dt).inDays;
+  }
+  DateTime dtConv(String dt){
+    DateTime conv = DateTime(int.parse(dt.substring(6,10)), int.parse(dt.substring(3,5)), int.parse(dt.substring(0,2)));
+    return conv;
+  }
+
   @override
   Widget build(BuildContext context){
     Point timelineSt = Point(MediaQuery.of(context).size.width*0.05, MediaQuery.of(context).size.height*0.5);
     Point timelineEnd = Point(MediaQuery.of(context).size.width*0.95, MediaQuery.of(context).size.height*0.5);
     double pixelTlLength = timelineEnd.x-timelineSt.x as double;
-    List<Widget> events = []; //recursively adding events aligned by their dates to the UI
-    if (timelineData["eventDates"]?.length != null){
-      print(timelineData["eventDates"]!.length-1);
-      for (int x=0; x <= timelineData["eventDates"]!.length-1; x++){
-        print("sonething happened");
-        int evDateDays = getEventPos(timelineData["eventDates"]?[x], endDate);
-        double eventPos = evDateDays/daysLength;
-        print(evDateDays);
-        print(daysLength);
-        print("--");
-        print(eventPos);
-        print(pixelTlLength);
-        Widget toAdd = Align( //(timelineSt.x+(eventPos*pixelTlLength))
-          alignment: Alignment(((1/MediaQuery.of(context).size.width)+((1/MediaQuery.of(context).size.width)*timelineSt.x))+((1/MediaQuery.of(context).size.width)*(timelineSt.x+(eventPos*pixelTlLength))), 0.5),
-          child: FloatingActionButton(
-            onPressed: testButton,
-            child: const Text("help me"),
-          )
-        );
-        setState(() {
-          events.add(toAdd);
-        });
+    List<String> timelineDates = [];
+    //Map<String, List> timelineData = Map();
+
+    print(timelineData["stEnDates"]?[0]);
+    //List<String> timelineDates = [timelineData["stEnDates"]?[0],timelineData["stEnDates"]?[1]];
+    List<String> timelinePointInfo = [" ", " "];
+    List<int> daysBetween = [0, daysLength];
+    List<double> spacing = [];
+    List<Widget> timelinePoints = [];
+    if (!isLoading){
+      if(timelineData["eventDates"]?.length != null || timelineData["eventDates"]!.length > 1){
+        daysBetween = [0];
+        for (int x=0; x <= timelineData["eventDates"]!.length-1; x++){
+          if(x==0){
+            timelineDates.insert(0,timelineData["eventDates"]?[x]);
+          } else{
+            timelineDates.insert(timelineDates.length - 1, timelineData["eventDates"]?[x]);
+          }
+          timelinePointInfo.insert(timelineDates.length - 1, timelineData["events"]?[x]);
+          if (x==0){
+            daysBetween.add(getDateTime(timelineData["eventDates"]?[x], startDate));
+          } else{
+            daysBetween.insert(timelineDates.length - 1, getDateTime(timelineData["eventDates"]?[x], dtConv(timelineData["eventDates"]?[x-1])));
+          }
+          spacing.add(pixelTlLength*(daysBetween[daysBetween.length - 1]/daysLength));
+        }
+      } else{
+        spacing = [pixelTlLength];
       }
-      print(events);
-    }
-    return Scaffold(
-      body: CustomPaint(
-        painter: TimelinePainter(),
-        child: Stack(
-          children: [
-            Row(
-              children: events,
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: IconButton(
-                onPressed: testButton, 
-                icon: const Icon(Icons.add)
+      print("Reached recursive adding to tlpoints");
+      //List<Widget> timelinePoints = [];
+      for (int x=0; x < timelineDates.length; x++){
+        timelinePoints.add(
+          //Column(
+          //  crossAxisAlignment: CrossAxisAlignment.start,
+          //  children: [
+              TimelineTile(
+                node: const DotIndicator(),
+                contents: Text(timelineDates[x]),
+                oppositeContents: Text(timelinePointInfo[x]),
               ),
-            )
-          ]
-        ),
-      )
-    );
+        //      SizedBox(
+        //        width: spacing[x],
+        //      )
+        //    ],
+        //  )
+        );
+      }
+    }
+    //List<Widget> events = []; //recursively adding events aligned by their dates to the UI
+    //if (timelineData["eventDates"]?.length != null){
+    //  print(timelineData["eventDates"]!.length-1);
+    //  for (int x=0; x <= timelineData["eventDates"]!.length-1; x++){
+    //    print("sonething happened");
+    //    int evDateDays = getEventPos(timelineData["eventDates"]?[x], endDate);
+    //    double eventPos = evDateDays/daysLength;
+    //    Widget toAdd = Align( //(timelineSt.x+(eventPos*pixelTlLength)) ((1/MediaQuery.of(context).size.width)+((1/MediaQuery.of(context).size.width)*timelineSt.x))+((1/MediaQuery.of(context).size.width)*(timelineSt.x+(eventPos*pixelTlLength))), 0.5
+    //      alignment: Alignment(0,1),
+    //      child: FloatingActionButton(
+    //        onPressed: testButton,
+    //        child: const Text("help me"),
+    //      )
+    //    );
+    //    setState(() {
+    //      events.add(toAdd);
+    //    });
+    //  }
+    //  print(events);
+    //}
+    print("reached scaffold");
+    if(isLoading){
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(),),
+      );
+    } else{
+      return Scaffold(
+        body: CustomPaint(
+          painter: TimelinePainter(),
+          child: Stack(
+            children: [
+              Timeline.tileBuilder(
+                theme: TimelineThemeData(
+                  direction: Axis.horizontal
+                ),
+                builder: TimelineTileBuilder.connected(
+                  connectionDirection: ConnectionDirection.after,
+                  itemCount: timelinePoints.length,
+                  contentsBuilder: (context, index) {
+                    return timelinePoints[index];
+                  }
+                  //itemExtent: 20,
+                  )
+                ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: IconButton(
+                  onPressed: testButton, 
+                  icon: const Icon(Icons.add)
+                ),
+              )
+            ]
+          ),
+        )
+      );
+    }
   }
 }
