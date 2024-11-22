@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:projectmanager/home.dart';
 import 'package:flutter/services.dart';
+import 'package:projectmanager/timeline.dart';
 
 import 'package:timelines/timelines.dart';
 
@@ -55,7 +56,7 @@ class MainPageState extends State<MainPage> {
     setState(() {
       switch(index){
         case "edittimeline":
-        subPage = const TimelineEditPage();
+        subPage = const timelinePage();
         break;
         case 0:
         subPage = const Home();
@@ -308,7 +309,7 @@ class TimelineEditState extends State<TimelineEditPage>{
 
   int getDateTime(String date, DateTime stDate){
     DateTime dt = DateTime(int.parse(date.substring(6,10)), int.parse(date.substring(3,5)), int.parse(date.substring(0,2)));
-    return stDate.difference(dt).inDays;
+    return dt.difference(stDate).inDays;
   }
   DateTime dtConv(String dt){
     DateTime conv = DateTime(int.parse(dt.substring(6,10)), int.parse(dt.substring(3,5)), int.parse(dt.substring(0,2)));
@@ -325,7 +326,7 @@ class TimelineEditState extends State<TimelineEditPage>{
 
     print(timelineData["stEnDates"]?[0]);
     //List<String> timelineDates = [timelineData["stEnDates"]?[0],timelineData["stEnDates"]?[1]];
-    List<String> timelinePointInfo = [" ", " "];
+    List<String> timelinePointInfo = [" "];
     List<int> daysBetween = [0, daysLength];
     List<double> spacing = [];
     List<Widget> timelinePoints = [];
@@ -338,13 +339,16 @@ class TimelineEditState extends State<TimelineEditPage>{
           } else{
             timelineDates.insert(timelineDates.length - 1, timelineData["eventDates"]?[x]);
           }
-          timelinePointInfo.insert(timelineDates.length - 1, timelineData["events"]?[x]);
+          timelinePointInfo.add(timelineData["events"]?[x]);
+          //timelinePointInfo.insert(timelineDates.length - 1, timelineData["events"]?[x]);
           if (x==0){
             daysBetween.add(getDateTime(timelineData["eventDates"]?[x], startDate));
           } else{
             daysBetween.insert(timelineDates.length - 1, getDateTime(timelineData["eventDates"]?[x], dtConv(timelineData["eventDates"]?[x-1])));
           }
           spacing.add(pixelTlLength*(daysBetween[daysBetween.length - 1]/daysLength));
+          //spacing.add(pixelTlLength*(daysLength/daysBetween[daysBetween.length - 1]));
+          print("a");
         }
       } else{
         spacing = [pixelTlLength];
@@ -408,6 +412,7 @@ class TimelineEditState extends State<TimelineEditPage>{
                   connectionDirection: ConnectionDirection.after,
                   itemCount: timelinePoints.length,
                   contentsBuilder: (context, index) {
+                    //return Padding(padding: EdgeInsets.only(right: spacing[index]), child: timelinePoints[index]);
                     return timelinePoints[index];
                   }
                   //itemExtent: 20,
